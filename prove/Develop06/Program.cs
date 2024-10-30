@@ -4,22 +4,22 @@ using System.IO;
 
 public class QuestProgram
 {
-    private static List < Achievement> achievements = new List<Achievement>();
+    private static List<Achievement> achievements = new List<Achievement>();
     private static int totalRewards = 0;
 
     public static void Main(string[] args)
     {
         while (true)
         {
-            Console.WriteLine($"You have {totalRewards} rewards.\n");
-            Console.WriteLine("Main Menu:");
-            Console.WriteLine("1. Add New Achievement");
-            Console.WriteLine("2. Show Achievements");
-            Console.WriteLine("3. Save Achievements");
-            Console.WriteLine("4. Load Achievements");
-            Console.WriteLine("5. Complete Achievement");
-            Console.WriteLine("6. Exit");
-            Console.Write("Select an option: ");
+            Console.WriteLine($"You have {totalRewards} points.\n");
+            Console.WriteLine("Menu Options:");
+            Console.WriteLine("1. Create New Goal");
+            Console.WriteLine("2. List Goals");
+            Console.WriteLine("3. Save Goals");
+            Console.WriteLine("4. Load Goals");
+            Console.WriteLine("5. Record Event");
+            Console.WriteLine("6. Quit");
+            Console.Write("Select a choice from the menu: ");
             string selection = Console.ReadLine();
 
             switch (selection)
@@ -50,24 +50,24 @@ public class QuestProgram
 
     private static void AddNewAchievement()
     {
-        Console.WriteLine("Available Achievement Types:");
-        Console.WriteLine("1. Simple Achievement");
-        Console.WriteLine("2. Ongoing Achievement");
-        Console.WriteLine("3. Milestone Achievement");
-        Console.Write("Which type would you like to add? ");
+        Console.WriteLine("The types of Goals are:");
+        Console.WriteLine("1. Simple goal");
+        Console.WriteLine("2. Eternal Goal");
+        Console.WriteLine("3. Checklist Goal");
+        Console.Write("Which type of goal would you like to create? ");
         string type = Console.ReadLine();
-
-        Console.Write("Enter the name of your achievement: ");
+        Console.Write("What is the name of your goal? ");
         string title = Console.ReadLine();
-
-        Console.Write("Provide a brief description: ");
+        Console.Write("What is a short description of it? ");
         string details = Console.ReadLine();
-
-        Console.Write("Assign reward points for this achievement: ");
-        int points = int.Parse(Console.ReadLine());
+        Console.Write("What is the amount of points associated with this goal? ");
+        if (!int.TryParse(Console.ReadLine(), out int points))
+        {
+            Console.WriteLine("Invalid points value. Please enter a valid number.");
+            return;
+        }
 
         Achievement newAchievement = null;
-
         switch (type)
         {
             case "1":
@@ -78,23 +78,31 @@ public class QuestProgram
                 break;
             case "3":
                 Console.Write("How many completions are required? ");
-                int requiredCompletions = int.Parse(Console.ReadLine());
+                if (!int.TryParse(Console.ReadLine(), out int requiredCompletions))
+                {
+                    Console.WriteLine("Invalid completions value. Please enter a valid number.");
+                    return;
+                }
                 Console.Write("What is the bonus reward for completing it? ");
-                int bonusPoints = int.Parse(Console.ReadLine());
+                if (!int.TryParse(Console.ReadLine(), out int bonusPoints))
+                {
+                    Console.WriteLine("Invalid bonus points value. Please enter a valid number.");
+                    return;
+                }
                 newAchievement = new MilestoneAchievement(title, details, points, requiredCompletions, bonusPoints);
                 break;
             default:
-                Console.WriteLine("Invalid achievement type.");
+                Console.WriteLine("Invalid goal type.");
                 return;
         }
 
         achievements.Add(newAchievement);
-        Console.WriteLine("Achievement added successfully!");
+        Console.WriteLine("Goal added successfully!");
     }
 
     private static void ShowAchievements()
     {
-        Console.WriteLine("Current Achievements:");
+        Console.WriteLine("The goals are:");
         for (int i = 0; i < achievements.Count; i++)
         {
             Console.WriteLine($"{i + 1}. {achievements[i].GetDetails()}");
@@ -103,9 +111,8 @@ public class QuestProgram
 
     private static void SaveAchievements()
     {
-        Console.Write("Enter the filename to save achievements: ");
+        Console.Write("What is the filename for the goal file? ");
         string filename = Console.ReadLine();
-
         using (StreamWriter writer = new StreamWriter(filename))
         {
             foreach (var achievement in achievements)
@@ -113,15 +120,13 @@ public class QuestProgram
                 writer.WriteLine(achievement.ToString());
             }
         }
-
-        Console.WriteLine("Achievements saved successfully!");
+        Console.WriteLine("Goals saved successfully!");
     }
 
     private static void LoadAchievements()
     {
-        Console.Write("Enter the filename to load achievements: ");
+        Console.Write("What is the filename for the goal file? ");
         string filename = Console.ReadLine();
-
         if (File.Exists(filename))
         {
             achievements.Clear();
@@ -142,8 +147,7 @@ public class QuestProgram
                     achievements.Add(new MilestoneAchievement(parts[1], parts[2], int.Parse(parts[3]), int.Parse(parts[4]), int.Parse(parts[5])));
                 }
             }
-
-            Console.WriteLine("Achievements loaded successfully!");
+            Console.WriteLine("Goals loaded successfully!");
         }
         else
         {
@@ -153,24 +157,22 @@ public class QuestProgram
 
     private static void CompleteAchievement()
     {
-        Console.WriteLine("Available Achievements:");
+        Console.WriteLine("The goals are:");
         for (int i = 0; i < achievements.Count; i++)
         {
             Console.WriteLine($"{i + 1}. {achievements[i].GetTitle()}");
         }
-
-        Console.Write("Which achievement did you complete? ");
-        int achievementIndex = int.Parse(Console.ReadLine()) - 1;
-
-        if (achievementIndex >= 0 && achievementIndex < achievements.Count)
+        Console.Write("Which goal did you accomplish? ");
+        if (!int.TryParse(Console.ReadLine(), out int achievementIndex) || achievementIndex < 1 || achievementIndex > achievements.Count)
         {
-            achievements[achievementIndex].RecordCompletion();
-            totalRewards += achievements[achievementIndex].GetRewardPoints();
+            Console.WriteLine("Invalid goal selection.");
+            return;
         }
-        else
-        {
-            Console.WriteLine("Invalid achievement selection.");
-        }
+
+        achievements[achievementIndex - 1].RecordCompletion();
+        totalRewards += achievements[achievementIndex - 1].GetRewardPoints();
+        Console.WriteLine($"congratulations! you have earned {achievements[achievementIndex - 1].GetRewardPoints()} points!");
+        Console.WriteLine($"You now have {totalRewards} points.");
     }
 }
 
@@ -202,7 +204,7 @@ public class SimpleAchievement : Achievement
 
     public override void RecordCompletion()
     {
-        Console.WriteLine($"Congratulations! You've completed the simple achievement '{title}' and earned {rewardPoints} points!");
+        Console.WriteLine($"Congratulations! You've completed the simple goal '{title}' and earned {rewardPoints} points!");
     }
 
     public override string GetDetails() => $"{title} ({description})";
@@ -215,7 +217,7 @@ public class OngoingAchievement : Achievement
 
     public override void RecordCompletion()
     {
-        Console.WriteLine($"Great job! You've completed the ongoing achievement '{title}' and earned {rewardPoints} points!");
+        Console.WriteLine($"Great job! You've completed the ongoing goal '{title}' and earned {rewardPoints} points!");
     }
 
     public override string GetDetails() => $"{title} ({description})";
@@ -239,15 +241,14 @@ public class MilestoneAchievement : Achievement
     {
         currentCompletions++;
         int pointsGained = rewardPoints;
-
         if (currentCompletions == completionsRequired)
         {
             pointsGained += bonusPoints;
-            Console.WriteLine($"Congratulations! You've completed the milestone achievement '{title}' and earned {pointsGained} points with a bonus!");
+            Console.WriteLine($"Congratulations! You've completed the milestone goal '{title}' and earned {pointsGained} points with a bonus!");
         }
         else
         {
-            Console.WriteLine($"You've completed a part of the milestone achievement '{title}' and earned {rewardPoints} points. Current progress: {currentCompletions}/{completionsRequired}");
+            Console.WriteLine($"You've completed a part of the milestone goal '{title}' and earned {rewardPoints} points. Current progress: {currentCompletions}/{completionsRequired}");
         }
     }
 
